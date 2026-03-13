@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berakah — Admin Dashboard</title>
+<style>
+@import url('data:text/css,');
+</style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#0D0D0D!important;color:#FAF7F0!important;font-family:'Segoe UI','Trebuchet MS',Arial,sans-serif;min-height:100vh;}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0D0D0D;}
+.login-wrap{width:100%;max-width:400px;padding:20px;}
+.login-logo{font-family:Georgia,‘Times New Roman’,serif;font-size:2.2rem;color:#C9A84C;letter-spacing:4px;text-align:center;margin-bottom:6px;}
+.login-sub{text-align:center;font-size:0.6rem;letter-spacing:4px;text-transform:uppercase;color:#8A7A60;margin-bottom:36px;}
+.login-card{background:#1A1408;border:1px solid #C9A84C;padding:40px;}
+.login-card h3{font-family:Georgia,‘Times New Roman’,serif;font-size:1.5rem;color:#FAF7F0;margin-bottom:24px;}
+.login-err{background:rgba(231,76,60,0.1);border-left:3px solid #e74c3c;color:#ff9090;padding:10px 14px;font-size:0.78rem;margin-bottom:14px;display:none;}
+.fg{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.fg label{font-size:0.58rem;letter-spacing:2.5px;text-transform:uppercase;color:#8A7A60;}
+.fg input,.fg select{background:#0D0D0D;border:1px solid #444;color:#FAF7F0;padding:13px 14px;font-size:0.85rem;font-family:‘Segoe UI’,‘Trebuchet MS’,Arial,sans-serif;outline:none;width:100%;}
+.fg input:focus,.fg select:focus{border-color:#C9A84C;}
+.btn-gold{background:#C9A84C;color:#0D0D0D;padding:14px;font-size:0.72rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;border:none;cursor:pointer;font-family:‘Segoe UI’,‘Trebuchet MS’,Arial,sans-serif;width:100%;}
+.btn-gold:hover{background:#E8C97A;}
+.login-hint{text-align:center;font-size:0.62rem;color:#555;margin-top:14px;}
+
+/* DASHBOARD — hidden until login */
+#dashboard{display:none;}
+#dashboard.active{display:block;}
+
+/* TOPBAR */
+.topbar{background:#111;border-bottom:1px solid rgba(201,168,76,0.2);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;}
+.tb-brand{font-family:Georgia,‘Times New Roman’,serif;font-size:1.3rem;color:#C9A84C;letter-spacing:3px;}
+.tb-right{display:flex;align-items:center;gap:14px;}
+.tb-date{font-size:0.68rem;color:#8A7A60;}
+.tb-clock{font-size:0.78rem;color:#C9A84C;font-weight:600;}
+.btn-logout{background:none;border:1px solid #333;color:#8A7A60;padding:7px 16px;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:‘Segoe UI’,‘Trebuchet MS’,Arial,sans-serif;}
+.btn-logout:hover{border-color:#e74c3c;color:#e74c3c;}
+
+/* LAYOUT */
+.body-wrap{display:flex;min-height:calc(100vh - 58px);}
+.sidebar{width:210px;background:#111;border-right:1px solid rgba(201,168,76,0.1);padding:20px 0;flex-shrink:0;}
+.nav-label{font-size:0.54rem;letter-spacing:3px;text-transform:uppercase;color:#555;padding:16px 20px 8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;color:#8A7A60;font-size:0.74rem;cursor:pointer;border-left:3px solid transparent;transition:all 0.2s;}
+.nav-item:hover,.nav-item.active{color:#C9A84C;background:rgba(201,168,76,0.06);border-left-color:#C9A84C;}
+.nav-badge{margin-left:auto;background:#e74c3c;color:#fff;font-size:0.54rem;padding:2px 6px;border-radius:10px;font-weight:700;display:none;}
+.content{flex:1;padding:28px;background:#0D0D0D;overflow-y:auto;}
+
+/* VIEWS */
+.view{display:none;}
+.view.active{display:block;}
+.view-title{font-family:Georgia,‘Times New Roman’,serif;font-size:1.9rem;color:#FAF7F0;margin-bottom:4px;}
+.view-sub{font-size:0.7rem;color:#8A7A60;margin-bottom:24px;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat{background:#1A1408;border:1px solid rgba(201,168,76,0.15);padding:20px;position:relative;overflow:hidden;}
+.stat::after{content:’’;position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);}
+.stat-lbl{font-size:0.56rem;letter-spacing:3px;text-transform:uppercase;color:#8A7A60;margin-bottom:8px;}
+.stat-val{font-family:Georgia,‘Times New Roman’,serif;font-size:2.2rem;color:#C9A84C;line-height:1;}
+.stat-val.red{color:#e74c3c;}
+.stat-val.green{color:#27ae60;}
+.stat-val.sm{font-size:1.5rem;}
+
+/* PANEL */
+.panel{background:#1A1408;border:1px solid rgba(201,168,76,0.12);margin-bottom:20px;}
+.panel-head{padding:16px 20px;border-bottom:1px solid rgba(201,168,76,0.1);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.panel-head h3{font-family:Georgia,‘Times New Roman’,serif;font-size:1.2rem;color:#FAF7F0;}
+.panel-body{padding:20px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+thead th{text-align:left;font-size:0.56rem;letter-spacing:2px;text-transform:uppercase;color:#8A7A60;padding:10px 12px;border-bottom:1px solid rgba(201,168,76,0.1);white-space:nowrap;}
+tbody td{padding:12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
+tbody tr:hover td{background:rgba(201,168,76,0.03);}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;font-size:0.56rem;letter-spacing:1px;text-transform:uppercase;font-weight:700;}
+.b-confirmed{background:rgba(39,174,96,0.12);color:#27ae60;border:1px solid rgba(39,174,96,0.3);}
+.b-pending{background:rgba(241,196,15,0.12);color:#f1c40f;border:1px solid rgba(241,196,15,0.3);}
+.b-cancelled{background:rgba(231,76,60,0.12);color:#e74c3c;border:1px solid rgba(231,76,60,0.3);}
+
+/* BUTTONS */
+.btn-sm{padding:7px 14px;font-size:0.6rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;border:none;cursor:pointer;font-family:‘Segoe UI’,‘Trebuchet MS’,Arial,sans-serif;}
+.btn-confirm{background:rgba(39,174,96,0.15);color:#27ae60;border:1px solid rgba(39,174,96,0.3);}
+.btn-confirm:hover{background:rgba(39,174,96,0.25);}
+.btn-cancel{background:rgba(231,76,60,0.12);color:#e74c3c;border:1px solid rgba(231,76,60,0.3);}
+.btn-cancel:hover{background:rgba(231,76,60,0.22);}
+.btn-view{background:rgba(201,168,76,0.1);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);}
+.btn-view:hover{background:rgba(201,168,76,0.2);}
+.btn-wa{background:rgba(37,211,102,0.12);color:#25D366;border:1px solid rgba(37,211,102,0.3);}
+.act-btns{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* FILTERS */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.filter-btn{background:none;border:1px solid #333;color:#8A7A60;padding:7px 16px;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:‘Segoe UI’,‘Trebuchet MS’,Arial,sans-serif;}
+.filter-btn.active,.filter-btn:hover{border-color:#C9A84C;color:#C9A84C;background:rgba(201,168,76,0.06);}
+.search-box{background:#111;border:1px solid #333;color:#FAF7F0;padding:8px 14px;font-size:0.78rem;font-family:‘Segoe UI’,‘Trebuchet MS’,Arial,sans-serif;outline:none;width:200px;}
+.search-box:focus{border-color:#C9A84C;}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:#1A1408;border:1px solid rgba(201,168,76,0.35);max-width:520px;width:100%;max-height:90vh;overflow-y:auto;animation:mIn 0.25s ease;}
+@keyframes mIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.modal-top{padding:20px 24px 14px;border-bottom:1px solid rgba(201,168,76,0.1);display:flex;justify-content:space-between;align-items:center;}
+.modal-top h3{font-family:Georgia,‘Times New Roman’,serif;font-size:1.4rem;color:#FAF7F0;}
+.modal-close{background:none;border:none;color:#8A7A60;font-size:1.3rem;cursor:pointer;line-height:1;}
+.modal-close:hover{color:#C9A84C;}
+.modal-body{padding:20px 24px 28px;}
+.drow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.8rem;}
+.drow:last-child{border:none;}
+.drow span:first-child{color:#8A7A60;}
+.drow span:last-child{color:#FAF7F0;text-align:right;max-width:60%;}
+
+/* REPORT BARS */
+.rp-bar{margin-bottom:14px;}
+.rp-bar-top{display:flex;justify-content:space-between;font-size:0.76rem;margin-bottom:5px;}
+.rp-bar-top span:first-child{color:#8A7A60;}
+.rp-bar-top span:last-child{color:#C9A84C;}
+.rp-bar-bg{height:6px;background:#222;border-radius:3px;}
+.rp-bar-fill{height:100%;background:#C9A84C;border-radius:3px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:#1A1408;border:1px solid #C9A84C;color:#C9A84C;padding:12px 18px;font-size:0.78rem;z-index:1000;display:none;}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:#555;}
+.empty div{font-size:2rem;margin-bottom:10px;}
+
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr;}.sidebar{width:180px;}}
+@media(max-width:640px){.sidebar{display:none;}.stats{grid-template-columns:1fr 1fr;}.content{padding:16px;}}
+</style>
+
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-logo">BERAKAH</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <div class="login-card">
+      <h3>Sign In</h3>
+      <div class="login-err" id="loginErr">Incorrect username or password.</div>
+      <div class="fg">
+        <label>Username</label>
+        <input type="text" id="uname" placeholder="admin" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" id="upass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-gold" onclick="doLogin()">Sign In to Dashboard</button>
+      <div class="login-hint">Username: admin &nbsp;·&nbsp; Password: berakah2025</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+
+<div id="dashboard">
+  <div class="topbar">
+    <div class="tb-brand">BERAKAH ADMIN</div>
+    <div class="tb-right">
+      <span class="tb-date" id="tbDate"></span>
+      <span class="tb-clock" id="tbClock">00:00</span>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="body-wrap">
+    <div class="sidebar">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showView('bookings',this)">📋 All Bookings <span class="nav-badge" id="pendingBadge"></span></div>
+      <div class="nav-item" onclick="showView('pending',this)">⏳ Pending Payments</div>
+      <div class="nav-label">Finance</div>
+      <div class="nav-item" onclick="showView('reports',this)">📊 Reports</div>
+      <div class="nav-label">Account</div>
+      <div class="nav-item" onclick="showView('settings',this)">⚙️ Settings</div>
+    </div>
+
+
+<div class="content">
+
+  <!-- BOOKINGS VIEW -->
+  <div class="view active" id="view-bookings">
+    <h2 class="view-title">All Bookings</h2>
+    <p class="view-sub" id="bookingsDate"></p>
+    <div class="stats">
+      <div class="stat"><div class="stat-lbl">Total Bookings</div><div class="stat-val" id="st-total">0</div></div>
+      <div class="stat"><div class="stat-lbl">Pending</div><div class="stat-val red" id="st-pending">0</div></div>
+      <div class="stat"><div class="stat-lbl">Confirmed</div><div class="stat-val green" id="st-confirmed">0</div></div>
+      <div class="stat"><div class="stat-lbl">Revenue</div><div class="stat-val sm" id="st-revenue">₦0</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Booking Records</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <input class="search-box" type="text" placeholder="Search name / ref..." oninput="renderBookings(this.value)">
+          <button class="btn-sm btn-view" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="filters">
+          <button class="filter-btn active" onclick="filterBy('all',this)">All</button>
+          <button class="filter-btn" onclick="filterBy('Pending',this)">Pending</button>
+          <button class="filter-btn" onclick="filterBy('Confirmed',this)">Confirmed</button>
+          <button class="filter-btn" onclick="filterBy('Cancelled',this)">Cancelled</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Ref</th><th>Guest</th><th>Phone</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="bookingsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PENDING VIEW -->
+  <div class="view" id="view-pending">
+    <h2 class="view-title">Pending Payments</h2>
+    <p class="view-sub">Confirm or cancel bookings awaiting payment</p>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Ref</th><th>Guest</th><th>Phone</th><th>Room</th><th>Total</th><th>Date Booked</th><th>Actions</th></tr></thead>
+            <tbody id="pendingTable"></tbody>
+          </table>
+          <div class="empty" id="pendingEmpty" style="display:none;"><div>✅</div><p style="font-size:0.8rem;">No pending bookings</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS VIEW -->
+  <div class="view" id="view-reports">
+    <h2 class="view-title">Revenue Reports</h2>
+    <p class="view-sub">Financial overview</p>
+    <div class="filters">
+      <button class="filter-btn active" onclick="setRpPeriod('today',this)">Today</button>
+      <button class="filter-btn" onclick="setRpPeriod('week',this)">This Week</button>
+      <button class="filter-btn" onclick="setRpPeriod('month',this)">This Month</button>
+      <button class="filter-btn" onclick="setRpPeriod('all',this)">All Time</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-lbl">Revenue</div><div class="stat-val sm" id="rp-rev">₦0</div></div>
+      <div class="stat"><div class="stat-lbl">Bookings</div><div class="stat-val" id="rp-count">0</div></div>
+      <div class="stat"><div class="stat-lbl">Confirmed</div><div class="stat-val green" id="rp-conf">0</div></div>
+      <div class="stat"><div class="stat-lbl">Pending</div><div class="stat-val red" id="rp-pend">0</div></div>
+    </div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-head"><h3>Revenue by Room Type</h3></div>
+      <div class="panel-body" id="rpBars"><div class="empty"><div>📊</div><p style="font-size:0.8rem;">No data yet</p></div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Transaction Log</h3></div>
+      <div class="panel-body">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Ref</th><th>Guest</th><th>Room</th><th>Nights</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody id="rpTable"></tbody>
+          </table>
+          <div class="empty" id="rpEmpty" style="display:none;"><div>📋</div><p style="font-size:0.8rem;">No data for this period</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS VIEW -->
+  <div class="view" id="view-settings">
+    <h2 class="view-title">Settings</h2>
+    <p class="view-sub">Manage credentials and configuration</p>
+    <div class="panel" style="max-width:480px;">
+      <div class="panel-head"><h3>Change Password</h3></div>
+      <div class="panel-body">
+        <div class="fg"><label>Current Password</label><input type="password" id="s-old" placeholder="Current password"></div>
+        <div class="fg"><label>New Password</label><input type="password" id="s-new" placeholder="New password"></div>
+        <div class="fg"><label>Confirm New Password</label><input type="password" id="s-confirm" placeholder="Repeat new password"></div>
+        <button class="btn-sm btn-confirm" onclick="changePassword()">Update Password</button>
+        <div id="s-msg" style="margin-top:12px;font-size:0.78rem;display:none;"></div>
+      </div>
+    </div>
+    <div class="panel" style="max-width:480px;margin-top:16px;">
+      <div class="panel-head"><h3>Hotel WhatsApp Number</h3></div>
+      <div class="panel-body">
+        <div class="fg"><label>WhatsApp Number (International Format)</label><input type="text" id="s-wa" placeholder="e.g. 2348012345678"></div>
+        <button class="btn-sm btn-confirm" onclick="saveWA()">Save Number</button>
+        <p style="font-size:0.68rem;color:#8A7A60;margin-top:10px;">Remove the leading 0 and add 234 at the start.<br>Example: 0801 234 5678 → 2348012345678</p>
+      </div>
+    </div>
+    <div class="panel" style="max-width:480px;margin-top:16px;">
+      <div class="panel-head"><h3>Danger Zone</h3></div>
+      <div class="panel-body">
+        <p style="font-size:0.8rem;color:#8A7A60;margin-bottom:14px;">Permanently delete all booking records from this browser.</p>
+        <button class="btn-sm btn-cancel" onclick="clearAllData()">🗑️ Clear All Booking Data</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="modal-top">
+      <h3>Booking Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var ADMIN_WA   = '2348000000000';
+var ADMIN_PASS = 'berakah2025';
+var bookingFilter = 'all';
+var rpPeriod = 'today';
+
+(function(){
+  var sp = localStorage.getItem('bh_admin_pass'); if(sp) ADMIN_PASS = sp;
+  var sw = localStorage.getItem('bh_admin_wa');   if(sw) ADMIN_WA   = sw;
+})();
+
+function getBookings(){
+  try{ return JSON.parse(localStorage.getItem('berakah_bookings')||'[]'); }catch(e){ return []; }
+}
+function saveBookings(arr){ localStorage.setItem('berakah_bookings', JSON.stringify(arr)); }
+
+// ── AUTH ──
+function doLogin(){
+  var u = document.getElementById('uname').value.trim();
+  var p = document.getElementById('upass').value.trim();
+  document.getElementById('loginErr').style.display = 'none';
+  if(u === 'admin' && p === ADMIN_PASS){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').classList.add('active');
+    initDashboard();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+
+function doLogout(){
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('uname').value = '';
+  document.getElementById('upass').value = '';
+}
+
+// ── CLOCK ──
+setInterval(function(){
+  var n = new Date();
+  var el = document.getElementById('tbClock');
+  if(el) el.textContent = ('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2)+':'+('0'+n.getSeconds()).slice(-2);
+}, 1000);
+
+// ── INIT ──
+function initDashboard(){
+  var d = new Date().toDateString();
+  document.getElementById('tbDate').textContent = d;
+  document.getElementById('bookingsDate').textContent = d;
+  document.getElementById('s-wa').value = ADMIN_WA;
+  updateStats();
+  renderBookings('');
+  renderPending();
+}
+
+// ── NAVIGATION ──
+function showView(name, el){
+  document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  if(name==='reports') renderReport();
+  if(name==='pending') renderPending();
+  if(name==='bookings') renderBookings('');
+}
+
+// ── STATS ──
+function updateStats(){
+  var bk = getBookings();
+  var pending   = bk.filter(function(b){ return b.status==='Pending'; }).length;
+  var confirmed = bk.filter(function(b){ return b.status==='Confirmed'; }).length;
+  var revenue   = bk.filter(function(b){ return b.status==='Confirmed'; }).reduce(function(s,b){ return s+(b.total||0); },0);
+  document.getElementById('st-total').textContent     = bk.length;
+  document.getElementById('st-pending').textContent   = pending;
+  document.getElementById('st-confirmed').textContent = confirmed;
+  document.getElementById('st-revenue').textContent   = '₦'+revenue.toLocaleString();
+  var badge = document.getElementById('pendingBadge');
+  if(pending>0){ badge.textContent=pending; badge.style.display='inline-block'; }
+  else { badge.style.display='none'; }
+}
+
+// ── ALL BOOKINGS ──
+function renderBookings(q){
+  var bk = getBookings();
+  if(bookingFilter!=='all') bk = bk.filter(function(b){ return b.status===bookingFilter; });
+  if(q){
+    var s = q.toLowerCase();
+    bk = bk.filter(function(b){
+      return (b.guestName||b.name||'').toLowerCase().includes(s)||
+             (b.bookingRef||b.ref||'').toLowerCase().includes(s)||
+             (b.phone||'').includes(s);
+    });
+  }
+  var tbody = document.getElementById('bookingsTable');
+  if(!bk.length){
+    tbody.innerHTML='<tr><td colspan="11"><div class="empty"><div>📋</div><p style="font-size:0.8rem;">No bookings found</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = bk.slice().reverse().map(function(b){
+    var name   = b.guestName||b.name||'—';
+    var ref    = b.bookingRef||b.ref||'—';
+    var room   = b.roomType||b.room||'—';
+    var ci     = fmtDate(b.checkInDate||b.checkinDate||b.checkIn);
+    var co     = fmtDate(b.checkOutDate||b.checkoutDate||b.checkOut);
+    var nights = b.nights||'—';
+    var total  = b.total?'₦'+b.total.toLocaleString():'—';
+    var status = b.status||'Pending';
+    var bc     = status==='Confirmed'?'b-confirmed':status==='Cancelled'?'b-cancelled':'b-pending';
+    var date   = b.date?new Date(b.date).toLocaleDateString():'—';
+    var sr     = ref.replace(/'/g,"\\'");
+    return '<tr>'+
+      '<td style="color:#C9A84C;font-family:\'Cormorant Garamond\',serif;white-space:nowrap;">'+ref+'</td>'+
+      '<td>'+name+'</td>'+
+      '<td style="color:#8A7A60;font-size:0.73rem;">'+(b.phone||'—')+'</td>'+
+      '<td>'+room+'</td>'+
+      '<td style="font-size:0.73rem;">'+ci+'</td>'+
+      '<td style="font-size:0.73rem;">'+co+'</td>'+
+      '<td style="text-align:center;">'+nights+'</td>'+
+      '<td style="color:#C9A84C;font-weight:700;">'+total+'</td>'+
+      '<td><span class="badge '+bc+'">'+status+'</span></td>'+
+      '<td style="font-size:0.7rem;color:#8A7A60;">'+date+'</td>'+
+      '<td><div class="act-btns">'+
+        '<button class="btn-sm btn-view" onclick="viewBooking(\''+sr+'\')">👁 View</button>'+
+        (status==='Pending'?'<button class="btn-sm btn-confirm" onclick="confirmBooking(\''+sr+'\')">✅</button>':'')+
+        (status!=='Cancelled'?'<button class="btn-sm btn-cancel" onclick="cancelBooking(\''+sr+'\')">✕</button>':'')+
+        '<button class="btn-sm btn-wa" onclick="waGuest(\''+sr+'\')">📲</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function filterBy(f,btn){
+  bookingFilter=f;
+  document.querySelectorAll('#view-bookings .filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderBookings('');
+}
+
+// ── PENDING ──
+function renderPending(){
+  var bk = getBookings().filter(function(b){ return b.status==='Pending'; });
+  var tbody = document.getElementById('pendingTable');
+  var empty  = document.getElementById('pendingEmpty');
+  if(!bk.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = bk.map(function(b){
+    var name  = b.guestName||b.name||'—';
+    var ref   = b.bookingRef||b.ref||'—';
+    var room  = b.roomType||b.room||'—';
+    var total = b.total?'₦'+b.total.toLocaleString():'—';
+    var date  = b.date?new Date(b.date).toLocaleDateString():'—';
+    var sr    = ref.replace(/'/g,"\\'");
+    return '<tr>'+
+      '<td style="color:#C9A84C;font-family:\'Cormorant Garamond\',serif;">'+ref+'</td>'+
+      '<td>'+name+'</td>'+
+      '<td style="color:#8A7A60;font-size:0.73rem;">'+(b.phone||'—')+'</td>'+
+      '<td>'+room+'</td>'+
+      '<td style="color:#C9A84C;font-weight:700;">'+total+'</td>'+
+      '<td style="font-size:0.73rem;color:#8A7A60;">'+date+'</td>'+
+      '<td><div class="act-btns">'+
+        '<button class="btn-sm btn-confirm" onclick="confirmBooking(\''+sr+'\')">✅ Confirm</button>'+
+        '<button class="btn-sm btn-cancel"  onclick="cancelBooking(\''+sr+'\')">✕ Cancel</button>'+
+        '<button class="btn-sm btn-wa"      onclick="waGuest(\''+sr+'\')">📲 WA</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ── ACTIONS ──
+function confirmBooking(ref){
+  var bk = getBookings();
+  var b  = bk.find(function(x){ return (x.bookingRef||x.ref)===ref; });
+  if(!b) return;
+  b.status = 'Confirmed';
+  saveBookings(bk);
+  updateStats(); renderBookings(''); renderPending();
+  toast('✅ Booking '+ref+' confirmed!');
+}
+
+function cancelBooking(ref){
+  if(!confirm('Cancel booking '+ref+'?')) return;
+  var bk = getBookings();
+  var b  = bk.find(function(x){ return (x.bookingRef||x.ref)===ref; });
+  if(!b) return;
+  b.status = 'Cancelled';
+  saveBookings(bk);
+  updateStats(); renderBookings(''); renderPending();
+  toast('Booking '+ref+' cancelled.');
+}
+
+function viewBooking(ref){
+  var bk = getBookings();
+  var b  = bk.find(function(x){ return (x.bookingRef||x.ref)===ref; });
+  if(!b) return;
+  var name   = b.guestName||b.name||'—';
+  var room   = b.roomType||b.room||'—';
+  var ci     = fmtDate(b.checkInDate||b.checkinDate);
+  var co     = fmtDate(b.checkOutDate||b.checkoutDate);
+  var status = b.status||'Pending';
+  var bc     = status==='Confirmed'?'b-confirmed':status==='Cancelled'?'b-cancelled':'b-pending';
+  var sr     = ref.replace(/'/g,"\\'");
+  document.getElementById('detailBody').innerHTML =
+    drow('Booking Ref', ref)+
+    drow('Guest Name', name)+
+    drow('Phone', b.phone||'—')+
+    drow('Email', b.email||'—')+
+    drow('Room Type', room)+
+    drow('Check-in', ci)+
+    drow('Check-out', co)+
+    drow('Nights', (b.nights||'—')+' nights')+
+    drow('Total', b.total?'₦'+b.total.toLocaleString():'—')+
+    drow('Status', '<span class="badge '+bc+'">'+status+'</span>')+
+    drow('Booked On', b.date?new Date(b.date).toLocaleString():'—')+
+    (b.requests?drow('Requests', b.requests):'')+
+    '<div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">'+
+      (status==='Pending'?'<button class="btn-sm btn-confirm" onclick="confirmBooking(\''+sr+'\');closeModal()">✅ Confirm</button>':'')+
+      (status!=='Cancelled'?'<button class="btn-sm btn-cancel" onclick="cancelBooking(\''+sr+'\');closeModal()">✕ Cancel</button>':'')+
+      '<button class="btn-sm btn-wa" onclick="waGuest(\''+sr+'\')">📲 WhatsApp Guest</button>'+
+    '</div>';
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function drow(l,v){
+  return '<div class="drow"><span>'+l+'</span><span>'+v+'</span></div>';
+}
+
+function waGuest(ref){
+  var bk = getBookings();
+  var b  = bk.find(function(x){ return (x.bookingRef||x.ref)===ref; });
+  if(!b) return;
+  var ph  = (b.phone||'').replace(/\D/g,'');
+  var msg = 'Hello '+(b.guestName||b.name||'Guest')+'! Your booking at Berakah Hotel & Events Center has been '+
+    (b.status==='Confirmed'?'CONFIRMED ✅':'received and is being reviewed ⏳')+'.\n\n'+
+    'Booking Ref: '+(b.bookingRef||b.ref)+'\n'+
+    'Room: '+(b.roomType||b.room||'—')+'\n'+
+    'Check-in: '+fmtDate(b.checkInDate||b.checkinDate)+'\n'+
+    'Check-out: '+fmtDate(b.checkOutDate||b.checkoutDate)+'\n'+
+    'Total: ₦'+(b.total||0).toLocaleString()+'\n\n'+
+    'Thank you for choosing Berakah Hotel! 🙏';
+  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg));
+}
+
+// ── REPORTS ──
+function setRpPeriod(p,btn){
+  rpPeriod=p;
+  document.querySelectorAll('#view-reports .filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderReport();
+}
+
+function renderReport(){
+  var now = new Date();
+  var bk = getBookings().filter(function(b){
+    var d = new Date(b.date);
+    if(rpPeriod==='today')  return d.toDateString()===now.toDateString();
+    if(rpPeriod==='week')   { var w=new Date(now); w.setDate(w.getDate()-7); return d>=w; }
+    if(rpPeriod==='month')  return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+    return true;
+  });
+  var confirmed = bk.filter(function(b){ return b.status==='Confirmed'; });
+  var pending   = bk.filter(function(b){ return b.status==='Pending'; });
+  var revenue   = confirmed.reduce(function(s,b){ return s+(b.total||0); },0);
+  document.getElementById('rp-rev').textContent   = '₦'+revenue.toLocaleString();
+  document.getElementById('rp-count').textContent = bk.length;
+  document.getElementById('rp-conf').textContent  = confirmed.length;
+  document.getElementById('rp-pend').textContent  = pending.length;
+  var byType={};
+  confirmed.forEach(function(b){ var r=b.roomType||b.room||'Other'; byType[r]=(byType[r]||0)+(b.total||0); });
+  var barsEl = document.getElementById('rpBars');
+  if(!Object.keys(byType).length){
+    barsEl.innerHTML='<div class="empty"><div>📊</div><p style="font-size:0.8rem;">No confirmed bookings in this period</p></div>';
+  } else {
+    var maxV = Math.max.apply(null,Object.values(byType));
+    barsEl.innerHTML = Object.entries(byType).map(function(e){
+      var pct=Math.round(e[1]/maxV*100);
+      return '<div class="rp-bar">'+
+        '<div class="rp-bar-top"><span>'+e[0]+'</span><span>₦'+e[1].toLocaleString()+'</span></div>'+
+        '<div class="rp-bar-bg"><div class="rp-bar-fill" style="width:'+pct+'%"></div></div>'+
+      '</div>';
+    }).join('');
+  }
+  var tbody = document.getElementById('rpTable');
+  var empty  = document.getElementById('rpEmpty');
+  if(!bk.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = bk.slice().reverse().map(function(b){
+    var status = b.status||'Pending';
+    var bc = status==='Confirmed'?'b-confirmed':status==='Cancelled'?'b-cancelled':'b-pending';
+    return '<tr>'+
+      '<td style="color:#C9A84C;">'+(b.bookingRef||b.ref||'—')+'</td>'+
+      '<td>'+(b.guestName||b.name||'—')+'</td>'+
+      '<td>'+(b.roomType||b.room||'—')+'</td>'+
+      '<td style="text-align:center;">'+(b.nights||'—')+'</td>'+
+      '<td style="color:#C9A84C;font-weight:700;">'+(b.total?'₦'+b.total.toLocaleString():'—')+'</td>'+
+      '<td><span class="badge '+bc+'">'+status+'</span></td>'+
+      '<td style="font-size:0.72rem;color:#8A7A60;">'+(b.date?new Date(b.date).toLocaleDateString():'—')+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ── SETTINGS ──
+function changePassword(){
+  var oldP    = document.getElementById('s-old').value;
+  var newP    = document.getElementById('s-new').value;
+  var conf    = document.getElementById('s-confirm').value;
+  var msg     = document.getElementById('s-msg');
+  if(oldP!==ADMIN_PASS){ show(msg,'#e74c3c','Current password is incorrect.'); return; }
+  if(newP.length<6)    { show(msg,'#e74c3c','Password must be at least 6 characters.'); return; }
+  if(newP!==conf)      { show(msg,'#e74c3c','Passwords do not match.'); return; }
+  ADMIN_PASS=newP;
+  localStorage.setItem('bh_admin_pass',newP);
+  show(msg,'#27ae60','✅ Password updated.');
+  document.getElementById('s-old').value='';
+  document.getElementById('s-new').value='';
+  document.getElementById('s-confirm').value='';
+}
+
+function show(el,color,text){ el.style.display='block'; el.style.color=color; el.textContent=text; }
+
+function saveWA(){
+  var val = document.getElementById('s-wa').value.trim();
+  if(!val){ toast('⚠️ Please enter a WhatsApp number'); return; }
+  ADMIN_WA=val;
+  localStorage.setItem('bh_admin_wa',val);
+  toast('✅ WhatsApp number saved!');
+}
+
+function clearAllData(){
+  if(!confirm('Delete ALL booking records permanently?')) return;
+  localStorage.removeItem('berakah_bookings');
+  updateStats(); renderBookings(''); renderPending();
+  toast('All booking data cleared.');
+}
+
+// ── EXPORT ──
+function exportCSV(){
+  var bk = getBookings();
+  if(!bk.length){ toast('No bookings to export.'); return; }
+  var h=['Ref','Name','Phone','Email','Room','Check-in','Check-out','Nights','Total','Status','Date'];
+  var rows=bk.map(function(b){return[
+    b.bookingRef||b.ref||'', b.guestName||b.name||'', b.phone||'', b.email||'',
+    b.roomType||b.room||'', b.checkInDate||b.checkinDate||'',
+    b.checkOutDate||b.checkoutDate||'', b.nights||'', b.total||'',
+    b.status||'', b.date||''
+  ];});
+  var csv=[h,...rows].map(function(r){ return r.map(function(v){ return '"'+(v||'')+'"'; }).join(','); }).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='berakah-bookings-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+// ── MODAL ──
+function closeModal(){ document.getElementById('detailModal').classList.remove('open'); }
+document.getElementById('detailModal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+
+// ── HELPERS ──
+function fmtDate(d){ if(!d) return '—'; try{ return new Date(d+'T12:00:00').toDateString(); }catch(e){ return d; } }
+function toast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; setTimeout(function(){ t.style.display='none'; },3500); }
+</script>
+
+</body>
+</html>
