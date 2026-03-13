@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Room — Berakah Hotel & Events</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { background-color:#0D0D0D !important; color:#FAF7F0 !important; }
+body { font-family:'Montserrat',sans-serif; min-height:100vh; background:#0D0D0D; color:#FAF7F0; }
+
+.topbar { background:#111; border-bottom:1px solid #C9A84C; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; }
+.topbar-logo { font-family:‘Cormorant Garamond’,serif; font-size:1.4rem; color:#C9A84C; letter-spacing:2px; text-decoration:none; }
+.topbar-back { color:#8A7A60; font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; text-decoration:none; }
+.topbar-back:hover { color:#C9A84C; }
+
+.steps { display:flex; justify-content:center; align-items:center; padding:36px 20px 0; }
+.step { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.step-num { width:38px; height:38px; border-radius:50%; border:2px solid #444; display:flex; align-items:center; justify-content:center; font-size:0.8rem; color:#888; font-weight:600; }
+.step.active .step-num { border-color:#C9A84C; background:#C9A84C; color:#0D0D0D; }
+.step.done .step-num { border-color:#C9A84C; color:#C9A84C; }
+.step-label { font-size:0.58rem; letter-spacing:2px; text-transform:uppercase; color:#888; }
+.step.active .step-label { color:#C9A84C; }
+.step-line { width:60px; height:1px; background:#333; margin-bottom:20px; }
+
+.main { max-width:780px; margin:0 auto; padding:40px 20px 80px; }
+.page { display:none; }
+.page.active { display:block; }
+.page-title { font-family:‘Cormorant Garamond’,serif; font-size:2.2rem; color:#FAF7F0; margin-bottom:6px; }
+.page-sub { color:#8A7A60; font-size:0.82rem; margin-bottom:32px; line-height:1.7; }
+
+.room-list { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:24px; }
+.room-card { background:#1a1408; border:2px solid #333; padding:20px; cursor:pointer; position:relative; transition:border-color 0.2s, background 0.2s; }
+.room-card:hover { border-color:#C9A84C; background:#1e1810; }
+.room-card.picked { border-color:#C9A84C !important; background:#221a08 !important; }
+.room-card.picked::after { content:‘✓’; position:absolute; top:12px; right:14px; color:#C9A84C; font-size:1.1rem; font-weight:900; }
+.room-tier { font-size:0.58rem; letter-spacing:3px; text-transform:uppercase; color:#C9A84C; margin-bottom:6px; pointer-events:none; }
+.room-name { font-family:‘Cormorant Garamond’,serif; font-size:1.25rem; color:#FAF7F0; margin-bottom:10px; pointer-events:none; }
+.room-prices { display:flex; align-items:baseline; gap:8px; pointer-events:none; }
+.room-orig { font-size:0.75rem; color:#666; text-decoration:line-through; }
+.room-now { font-family:‘Cormorant Garamond’,serif; font-size:1.5rem; color:#C9A84C; }
+.room-per { font-size:0.6rem; color:#888; }
+
+.sel-bar { background:rgba(201,168,76,0.1); border:1px solid #C9A84C; padding:12px 16px; font-size:0.82rem; color:#C9A84C; display:none; justify-content:space-between; margin-bottom:20px; }
+
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.fg { display:flex; flex-direction:column; gap:7px; }
+.fg label { font-size:0.62rem; letter-spacing:2px; text-transform:uppercase; color:#8A7A60; }
+.fg input, .fg select, .fg textarea { background:#111; border:1px solid #444; color:#FAF7F0; padding:13px 14px; font-size:0.85rem; font-family:‘Montserrat’,sans-serif; outline:none; width:100%; -webkit-appearance:none; }
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color:#C9A84C; }
+.fg select option { background:#1a1408; color:#FAF7F0; }
+.fg textarea { resize:vertical; min-height:90px; }
+.form-full { grid-column:1 / -1; }
+
+.nights-bar { background:#111; border:1px solid #333; padding:12px 16px; font-size:0.82rem; color:#8A7A60; margin-top:14px; display:none; }
+.err-box { background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; color:#ff9090; padding:12px 16px; font-size:0.8rem; margin-bottom:16px; display:none; }
+
+.sum-box { background:#111; border:1px solid #333; padding:24px; margin:24px 0; }
+.sum-box h4 { font-size:0.62rem; letter-spacing:3px; text-transform:uppercase; color:#C9A84C; margin-bottom:16px; }
+.sum-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #222; font-size:0.82rem; }
+.sum-row:last-child { border:none; padding-top:14px; }
+.sum-lbl { color:#8A7A60; }
+.sum-val { color:#FAF7F0; }
+.sum-big { font-family:‘Cormorant Garamond’,serif; font-size:1.7rem; color:#C9A84C; }
+
+.bank-box { background:#111; border:1px solid #C9A84C; padding:24px; margin:20px 0; }
+.bank-box h4 { font-size:0.62rem; letter-spacing:3px; text-transform:uppercase; color:#C9A84C; margin-bottom:16px; }
+.bank-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #222; font-size:0.85rem; }
+.bank-row:last-of-type { border:none; }
+.bank-lbl { color:#8A7A60; font-size:0.72rem; }
+.bank-val { color:#FAF7F0; font-weight:600; }
+.copy-btn { background:none; border:1px solid #C9A84C; color:#C9A84C; padding:4px 10px; font-size:0.6rem; cursor:pointer; font-family:‘Montserrat’,sans-serif; }
+.bank-note { background:#0a0800; border-left:3px solid #C9A84C; padding:14px; font-size:0.75rem; color:#8A7A60; line-height:1.7; margin-top:14px; }
+.info-bar { background:rgba(201,168,76,0.08); border:1px solid #C9A84C; padding:14px 18px; font-size:0.8rem; color:#C9A84C; margin-bottom:20px; }
+
+.receipt { background:#111; border:1px solid #C9A84C; padding:32px; }
+.rec-head { text-align:center; padding-bottom:24px; border-bottom:1px solid #333; margin-bottom:24px; }
+.rec-brand { font-family:‘Cormorant Garamond’,serif; font-size:1.5rem; color:#C9A84C; letter-spacing:2px; margin-bottom:4px; }
+.rec-ref-lbl { font-size:0.6rem; letter-spacing:3px; text-transform:uppercase; color:#888; margin-bottom:6px; }
+.rec-ref { font-family:‘Cormorant Garamond’,serif; font-size:2rem; color:#C9A84C; }
+.rec-status { display:inline-block; background:rgba(241,196,15,0.1); border:1px solid #f1c40f; color:#f1c40f; font-size:0.62rem; letter-spacing:2px; padding:4px 14px; margin-top:10px; text-transform:uppercase; }
+.rec-row { display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid #222; font-size:0.82rem; }
+.rec-row:last-child { border:none; }
+.r-lbl { color:#8A7A60; }
+.r-val { color:#FAF7F0; text-align:right; max-width:55%; }
+.rec-total-box { display:flex; justify-content:space-between; align-items:center; background:#0a0800; border:1px solid #C9A84C; padding:16px; margin:20px 0; }
+.rec-total-lbl { font-size:0.65rem; letter-spacing:2px; text-transform:uppercase; color:#8A7A60; }
+.rec-total-val { font-family:‘Cormorant Garamond’,serif; font-size:2rem; color:#C9A84C; }
+
+.btn-gold { background:#C9A84C; color:#0D0D0D; padding:15px 32px; font-size:0.72rem; letter-spacing:3px; text-transform:uppercase; font-weight:700; border:none; cursor:pointer; font-family:‘Montserrat’,sans-serif; width:100%; margin-top:20px; }
+.btn-gold:hover { background:#E8C97A; }
+.btn-outline { background:transparent; color:#C9A84C; padding:13px 32px; font-size:0.7rem; letter-spacing:2px; text-transform:uppercase; font-weight:600; border:1px solid #C9A84C; cursor:pointer; font-family:‘Montserrat’,sans-serif; }
+.btn-outline:hover { background:rgba(201,168,76,0.1); }
+.btn-row { display:flex; gap:14px; margin-top:20px; }
+.btn-row .btn-gold { margin-top:0; }
+.btn-wa { display:block; width:100%; background:#25D366; color:#fff; padding:15px; font-size:0.72rem; letter-spacing:3px; text-transform:uppercase; font-weight:700; border:none; cursor:pointer; font-family:‘Montserrat’,sans-serif; text-align:center; text-decoration:none; margin-bottom:10px; }
+.btn-print { display:block; width:100%; background:transparent; color:#C9A84C; padding:13px; font-size:0.7rem; letter-spacing:3px; text-transform:uppercase; font-weight:600; border:1px solid #C9A84C; cursor:pointer; font-family:‘Montserrat’,sans-serif; }
+
+@media(max-width:600px) {
+.room-list { grid-template-columns:1fr; }
+.form-grid { grid-template-columns:1fr; }
+.form-full { grid-column:auto; }
+.topbar { padding:14px 18px; }
+.step-line { width:32px; }
+}
+@media print {
+.topbar,.steps,.btn-row,.btn-wa,.btn-print { display:none !important; }
+body { background:white !important; color:#000 !important; }
+}
+</style>
+
+</head>
+<body>
+
+<div class="topbar">
+  <a href="berakah-hotel.html" class="topbar-logo">BERAKAH</a>
+  <a href="berakah-hotel.html" class="topbar-back">← Back</a>
+</div>
+
+<div class="steps">
+  <div class="step active" id="s1"><div class="step-num">1</div><div class="step-label">Room</div></div>
+  <div class="step-line"></div>
+  <div class="step" id="s2"><div class="step-num">2</div><div class="step-label">Details</div></div>
+  <div class="step-line"></div>
+  <div class="step" id="s3"><div class="step-num">3</div><div class="step-label">Payment</div></div>
+  <div class="step-line"></div>
+  <div class="step" id="s4"><div class="step-num">4</div><div class="step-label">Receipt</div></div>
+</div>
+
+<div class="main">
+
+  <!-- PAGE 1: ROOM -->
+
+  <div class="page active" id="page1">
+    <h2 class="page-title">Select Your Room</h2>
+    <p class="page-sub">Click on a room card to select it, then pick your dates.</p>
+    <div class="err-box" id="err1">Please select a room and enter your dates.</div>
+    <div class="sel-bar" id="selBar"><span id="selName">—</span><span id="selPrice">—</span></div>
+
+
+<div class="room-list">
+  <div class="room-card" id="rc0" onclick="pickRoom(0)">
+    <div class="room-tier">Tier 01 · Entry Luxury</div>
+    <div class="room-name">Standard Room</div>
+    <div class="room-prices"><span class="room-orig">₦25,000</span><span class="room-now">₦20,000</span><span class="room-per">/ night</span></div>
+  </div>
+  <div class="room-card" id="rc1" onclick="pickRoom(1)">
+    <div class="room-tier">Tier 02 · Enhanced Comfort</div>
+    <div class="room-name">Deluxe Room</div>
+    <div class="room-prices"><span class="room-orig">₦30,000</span><span class="room-now">₦25,000</span><span class="room-per">/ night</span></div>
+  </div>
+  <div class="room-card" id="rc2" onclick="pickRoom(2)">
+    <div class="room-tier">Tier 03 · Executive Class</div>
+    <div class="room-name">Executive Deluxe</div>
+    <div class="room-prices"><span class="room-orig">₦35,000</span><span class="room-now">₦30,000</span><span class="room-per">/ night</span></div>
+  </div>
+  <div class="room-card" id="rc3" onclick="pickRoom(3)">
+    <div class="room-tier">Tier 04 · Royal Collection</div>
+    <div class="room-name">Royal Suite</div>
+    <div class="room-prices"><span class="room-orig">₦40,000</span><span class="room-now">₦35,000</span><span class="room-per">/ night</span></div>
+  </div>
+  <div class="room-card" id="rc4" onclick="pickRoom(4)" style="grid-column:1/-1">
+    <div class="room-tier">Tier 05 · Ultra Premium</div>
+    <div class="room-name">Super Royal Suite ✨</div>
+    <div class="room-prices"><span class="room-orig">₦45,000</span><span class="room-now">₦40,000</span><span class="room-per">/ night</span></div>
+  </div>
+</div>
+
+<div class="form-grid">
+  <div class="fg"><label>Check-in Date</label><input type="date" id="checkin" onchange="calcNights()"></div>
+  <div class="fg"><label>Check-out Date</label><input type="date" id="checkout" onchange="calcNights()"></div>
+  <div class="fg"><label>Number of Guests</label>
+    <select id="guests">
+      <option value="1">1 Guest</option>
+      <option value="2" selected>2 Guests</option>
+      <option value="3">3 Guests</option>
+      <option value="4">4 Guests</option>
+      <option value="5">5+ Guests</option>
+    </select>
+  </div>
+</div>
+<div class="nights-bar" id="nightsBar">—</div>
+<button class="btn-gold" onclick="step1Go()">Continue to Guest Details →</button>
+
+
+  </div>
+
+  <!-- PAGE 2: GUEST -->
+
+  <div class="page" id="page2">
+    <h2 class="page-title">Guest Registration</h2>
+    <p class="page-sub">Fill in your details accurately. These appear on your receipt.</p>
+    <div class="err-box" id="err2">Please fill in all required fields marked *</div>
+    <div class="form-grid">
+      <div class="fg"><label>First Name *</label><input type="text" id="fname" placeholder="John"></div>
+      <div class="fg"><label>Last Name *</label><input type="text" id="lname" placeholder="Doe"></div>
+      <div class="fg"><label>Email *</label><input type="email" id="email" placeholder="john@email.com"></div>
+      <div class="fg"><label>Phone / WhatsApp *</label><input type="tel" id="phone" placeholder="+234 800 000 0000"></div>
+      <div class="fg"><label>ID Type</label>
+        <select id="idtype">
+          <option>National ID (NIN)</option>
+          <option>International Passport</option>
+          <option>Driver's License</option>
+          <option>Voter's Card</option>
+        </select>
+      </div>
+      <div class="fg"><label>ID Number</label><input type="text" id="idnum" placeholder="AB1234567"></div>
+      <div class="fg"><label>Next of Kin Name</label><input type="text" id="nokname" placeholder="Jane Doe"></div>
+      <div class="fg"><label>Next of Kin Phone</label><input type="tel" id="nokphone" placeholder="+234 800 000 0000"></div>
+      <div class="fg form-full"><label>Special Requests</label><textarea id="requests" placeholder="Early check-in, extra pillows, dietary needs..."></textarea></div>
+    </div>
+    <div class="sum-box">
+      <h4>Booking Summary</h4>
+      <div class="sum-row"><span class="sum-lbl">Room</span><span class="sum-val" id="sum-room">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Check-in</span><span class="sum-val" id="sum-ci">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Check-out</span><span class="sum-val" id="sum-co">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Nights</span><span class="sum-val" id="sum-nights">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Per Night</span><span class="sum-val" id="sum-price">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Total</span><span class="sum-big" id="sum-total">—</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="goPage(1)">← Back</button>
+      <button class="btn-gold" style="margin-top:0" onclick="step2Go()">Proceed to Payment →</button>
+    </div>
+  </div>
+
+  <!-- PAGE 3: PAYMENT -->
+
+  <div class="page" id="page3">
+    <h2 class="page-title">Bank Transfer</h2>
+    <p class="page-sub">Transfer the total amount to the account below, then click "I Have Paid".</p>
+    <div class="info-bar">⚠️ Use your <strong>Booking Reference</strong> as transfer narration. Booking confirmed within 1–2 hours after payment.</div>
+    <div class="bank-box">
+      <h4>Payment Details</h4>
+      <div class="bank-row"><span class="bank-lbl">Bank Name</span><span class="bank-val">First Bank Nigeria</span></div>
+      <div class="bank-row"><span class="bank-lbl">Account Name</span><span class="bank-val">Berakah Hotel & Events</span></div>
+      <div class="bank-row">
+        <span class="bank-lbl">Account Number</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="bank-val">3012345678</span>
+          <button class="copy-btn" onclick="doCopy('3012345678',this)">Copy</button>
+        </span>
+      </div>
+      <div class="bank-row"><span class="bank-lbl">Amount</span><span class="bank-val" id="p-amount" style="color:#C9A84C;font-size:1.2rem;">—</span></div>
+      <div class="bank-row">
+        <span class="bank-lbl">Reference / Narration</span>
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span class="bank-val" id="p-ref">—</span>
+          <button class="copy-btn" onclick="doCopy(document.getElementById('p-ref').textContent,this)">Copy</button>
+        </span>
+      </div>
+      <div class="bank-note"><strong style="color:#C9A84C;">Important:</strong> Screenshot your transfer receipt. After paying, click the button below and our team will confirm via WhatsApp within 1–2 hours.</div>
+    </div>
+    <div class="sum-box">
+      <h4>Payment Summary</h4>
+      <div class="sum-row"><span class="sum-lbl">Guest</span><span class="sum-val" id="p-guest">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Room</span><span class="sum-val" id="p-room">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Duration</span><span class="sum-val" id="p-nights">—</span></div>
+      <div class="sum-row"><span class="sum-lbl">Total</span><span class="sum-big" id="p-total">—</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="goPage(2)">← Back</button>
+      <button class="btn-gold" style="margin-top:0" onclick="step3Go()">✓ I Have Paid — Get My Receipt</button>
+    </div>
+  </div>
+
+  <!-- PAGE 4: RECEIPT -->
+
+  <div class="page" id="page4">
+    <h2 class="page-title">Booking Receipt</h2>
+    <p class="page-sub">Send via WhatsApp so our team can confirm your payment.</p>
+    <div class="receipt">
+      <div class="rec-head">
+        <div class="rec-brand">BERAKAH HOTEL & EVENTS</div>
+        <div style="font-size:0.62rem;letter-spacing:3px;color:#888;text-transform:uppercase;margin-bottom:14px;">Official Booking Receipt</div>
+        <div class="rec-ref-lbl">Booking Reference</div>
+        <div class="rec-ref" id="r-ref">—</div>
+        <div class="rec-status">⏳ Awaiting Payment Confirmation</div>
+      </div>
+      <div class="rec-row"><span class="r-lbl">Full Name</span><span class="r-val" id="r-name">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Email</span><span class="r-val" id="r-email">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Phone</span><span class="r-val" id="r-phone">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Room</span><span class="r-val" id="r-room">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Check-in</span><span class="r-val" id="r-ci">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Check-out</span><span class="r-val" id="r-co">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Nights</span><span class="r-val" id="r-nights">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Guests</span><span class="r-val" id="r-guests">—</span></div>
+      <div class="rec-row"><span class="r-lbl">Requests</span><span class="r-val" id="r-req">None</span></div>
+      <div class="rec-row"><span class="r-lbl">Date</span><span class="r-val" id="r-date">—</span></div>
+      <div class="rec-total-box">
+        <span class="rec-total-lbl">Total Amount Due</span>
+        <span class="rec-total-val" id="r-total">—</span>
+      </div>
+      <a class="btn-wa" id="wa-btn" href="#" target="_blank">📲 Send Receipt via WhatsApp</a>
+      <button class="btn-print" onclick="window.print()">🖨️ Print Receipt</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var ADMIN_WA = '2349076954596'; // ← CHANGE TO YOUR WHATSAPP NUMBER
+
+var ROOMS = [
+  {name:'Standard Room',     price:20000, orig:25000, tier:'Tier 01'},
+  {name:'Deluxe Room',       price:25000, orig:30000, tier:'Tier 02'},
+  {name:'Executive Deluxe',  price:30000, orig:35000, tier:'Tier 03'},
+  {name:'Royal Suite',       price:35000, orig:40000, tier:'Tier 04'},
+  {name:'Super Royal Suite', price:40000, orig:45000, tier:'Tier 05'}
+];
+
+var B = {
+  roomIdx:-1, checkin:'', checkout:'', nights:0, guests:2,
+  fname:'', lname:'', email:'', phone:'',
+  idtype:'', idnum:'', nokname:'', nokphone:'', requests:'', ref:''
+};
+
+function pickRoom(idx) {
+  B.roomIdx = idx;
+  for (var i = 0; i < 5; i++) {
+    var c = document.getElementById('rc' + i);
+    c.classList.remove('picked');
+  }
+  document.getElementById('rc' + idx).classList.add('picked');
+  document.getElementById('selName').textContent = '✅ ' + ROOMS[idx].name;
+  document.getElementById('selPrice').textContent = '₦' + ROOMS[idx].price.toLocaleString() + ' / night';
+  document.getElementById('selBar').style.display = 'flex';
+  document.getElementById('err1').style.display = 'none';
+  calcNights();
+}
+
+function calcNights() {
+  var ci = document.getElementById('checkin').value;
+  var co = document.getElementById('checkout').value;
+  B.checkin = ci;
+  B.checkout = co;
+  var bar = document.getElementById('nightsBar');
+  if (ci && co) {
+    var diff = Math.round((new Date(co) - new Date(ci)) / 86400000);
+    if (diff > 0) {
+      B.nights = diff;
+      var txt = '🌙 ' + diff + ' night' + (diff > 1 ? 's' : '');
+      if (B.roomIdx >= 0) {
+        txt += '   ·   Total: ₦' + (diff * ROOMS[B.roomIdx].price).toLocaleString();
+      }
+      bar.innerHTML = txt;
+      bar.style.display = 'block';
+    } else {
+      B.nights = 0;
+      bar.innerHTML = '⚠️ Check-out must be after check-in.';
+      bar.style.display = 'block';
+    }
+  }
+}
+
+function step1Go() {
+  var err = document.getElementById('err1');
+  if (B.roomIdx < 0) {
+    err.textContent = '⚠️ Please click on a room card to select it.';
+    err.style.display = 'block';
+    window.scrollTo(0,0);
+    return;
+  }
+  if (!B.checkin || !B.checkout || B.nights <= 0) {
+    err.textContent = '⚠️ Please select your check-in and check-out dates.';
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  B.guests = document.getElementById('guests').value;
+  var r = ROOMS[B.roomIdx];
+  var total = r.price * B.nights;
+  document.getElementById('sum-room').textContent = r.name;
+  document.getElementById('sum-ci').textContent = niceDate(B.checkin);
+  document.getElementById('sum-co').textContent = niceDate(B.checkout);
+  document.getElementById('sum-nights').textContent = B.nights + ' night' + (B.nights > 1 ? 's' : '');
+  document.getElementById('sum-price').textContent = '₦' + r.price.toLocaleString();
+  document.getElementById('sum-total').textContent = '₦' + total.toLocaleString();
+  goPage(2);
+}
+
+function step2Go() {
+  B.fname = document.getElementById('fname').value.trim();
+  B.lname = document.getElementById('lname').value.trim();
+  B.email = document.getElementById('email').value.trim();
+  B.phone = document.getElementById('phone').value.trim();
+  B.idtype = document.getElementById('idtype').value;
+  B.idnum = document.getElementById('idnum').value.trim();
+  B.nokname = document.getElementById('nokname').value.trim();
+  B.nokphone = document.getElementById('nokphone').value.trim();
+  B.requests = document.getElementById('requests').value.trim();
+  var err = document.getElementById('err2');
+  if (!B.fname || !B.lname || !B.email || !B.phone) {
+    err.style.display = 'block';
+    window.scrollTo(0,0);
+    return;
+  }
+  err.style.display = 'none';
+  B.ref = makeRef();
+  var r = ROOMS[B.roomIdx];
+  var total = r.price * B.nights;
+  document.getElementById('p-ref').textContent = B.ref;
+  document.getElementById('p-amount').textContent = '₦' + total.toLocaleString();
+  document.getElementById('p-guest').textContent = B.fname + ' ' + B.lname;
+  document.getElementById('p-room').textContent = r.name;
+  document.getElementById('p-nights').textContent = B.nights + ' night' + (B.nights > 1 ? 's' : '');
+  document.getElementById('p-total').textContent = '₦' + total.toLocaleString();
+  saveBooking();
+  goPage(3);
+}
+
+function step3Go() {
+  var r = ROOMS[B.roomIdx];
+  var total = r.price * B.nights;
+  document.getElementById('r-ref').textContent = B.ref;
+  document.getElementById('r-name').textContent = B.fname + ' ' + B.lname;
+  document.getElementById('r-email').textContent = B.email;
+  document.getElementById('r-phone').textContent = B.phone;
+  document.getElementById('r-room').textContent = r.name + ' (' + r.tier + ')';
+  document.getElementById('r-ci').textContent = niceDate(B.checkin);
+  document.getElementById('r-co').textContent = niceDate(B.checkout);
+  document.getElementById('r-nights').textContent = B.nights + ' night' + (B.nights > 1 ? 's' : '');
+  document.getElementById('r-guests').textContent = B.guests + ' guest' + (B.guests > 1 ? 's' : '');
+  document.getElementById('r-req').textContent = B.requests || 'None';
+  document.getElementById('r-date').textContent = new Date().toDateString();
+  document.getElementById('r-total').textContent = '₦' + total.toLocaleString();
+  var msg = 'BERAKAH HOTEL BOOKING\n' +
+    '----------------------------\n' +
+    'Ref: ' + B.ref + '\n' +
+    'Guest: ' + B.fname + ' ' + B.lname + '\n' +
+    'Phone: ' + B.phone + '\n' +
+    'Room: ' + r.name + '\n' +
+    'Check-in: ' + niceDate(B.checkin) + '\n' +
+    'Check-out: ' + niceDate(B.checkout) + '\n' +
+    'Nights: ' + B.nights + '\n' +
+    'Total: ' + '₦' + total.toLocaleString() + '\n' +
+    '----------------------------\n' +
+    'I have made the transfer. Please confirm my booking. Thank you!';
+  document.getElementById('wa-btn').href = 'https://api.whatsapp.com/send?phone=' + ADMIN_WA + '&text=' + encodeURIComponent(msg);
+  goPage(4);
+}
+
+function goPage(n) {
+  for (var i = 1; i <= 4; i++) {
+    document.getElementById('page' + i).className = 'page' + (i === n ? ' active' : '');
+    var s = document.getElementById('s' + i);
+    s.className = 'step' + (i < n ? ' done' : '') + (i === n ? ' active' : '');
+  }
+  window.scrollTo(0,0);
+}
+
+function niceDate(d) {
+  if (!d) return '—';
+  return new Date(d + 'T12:00:00').toDateString();
+}
+
+function makeRef() {
+  var c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var r = 'BHE-';
+  for (var i = 0; i < 8; i++) r += c[Math.floor(Math.random() * c.length)];
+  return r;
+}
+
+function doCopy(text, btn) {
+  try {
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = 'Copied!';
+      setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+    });
+  } catch(e) {
+    var el = document.createElement('textarea');
+    el.value = text; el.style.position = 'fixed'; el.style.opacity = '0';
+    document.body.appendChild(el); el.focus(); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+  }
+}
+
+function saveBooking() {
+  try {
+    var r = ROOMS[B.roomIdx];
+    var bk = JSON.parse(localStorage.getItem('berakah_bookings') || '[]');
+    bk.push({
+      ref:B.ref, name:B.fname+' '+B.lname, email:B.email, phone:B.phone,
+      room:r.name, tier:r.tier, checkin:B.checkin, checkout:B.checkout,
+      nights:B.nights, guests:B.guests, price:r.price, total:r.price*B.nights,
+      requests:B.requests, idtype:B.idtype, idnum:B.idnum,
+      nokname:B.nokname, nokphone:B.nokphone,
+      status:'Pending', date:new Date().toISOString()
+    });
+    localStorage.setItem('berakah_bookings', JSON.stringify(bk));
+  } catch(e) {}
+}
+
+// Set min dates
+var td = new Date().toISOString().split('T')[0];
+document.getElementById('checkin').min = td;
+document.getElementById('checkout').min = td;
+</script>
+
+</body>
+</html>
