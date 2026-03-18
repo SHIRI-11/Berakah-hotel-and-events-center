@@ -198,7 +198,7 @@ body { background:white !important; color:#000 !important; }
       <div class="fg"><label>Last Name *</label><input type="text" id="lname" placeholder="Doe"></div>
       <div class="fg"><label>Email *</label><input type="email" id="email" placeholder="john@email.com"></div>
       <div class="fg"><label>Phone / WhatsApp *</label><input type="tel" id="phone" placeholder="+234 800 000 0000"></div>
-     <!-- <div class="fg"><label>ID Type</label>
+      <div class="fg"><label>ID Type</label>
         <select id="idtype">
           <option>National ID (NIN)</option>
           <option>International Passport</option>
@@ -208,7 +208,7 @@ body { background:white !important; color:#000 !important; }
       </div>
       <div class="fg"><label>ID Number</label><input type="text" id="idnum" placeholder="AB1234567"></div>
       <div class="fg"><label>Next of Kin Name</label><input type="text" id="nokname" placeholder="Jane Doe"></div>
-      <div class="fg"><label>Next of Kin Phone</label><input type="tel" id="nokphone" placeholder="+234 800 000 0000"></div>-->
+      <div class="fg"><label>Next of Kin Phone</label><input type="tel" id="nokphone" placeholder="+234 800 000 0000"></div>
       <div class="fg form-full"><label>Special Requests</label><textarea id="requests" placeholder="Early check-in, extra pillows, dietary needs..."></textarea></div>
     </div>
     <div class="sum-box">
@@ -301,7 +301,8 @@ body { background:white !important; color:#000 !important; }
 </div>
 
 <script>
-var ADMIN_WA = '2349076954596'; // ← CHANGE TO YOUR WHATSAPP NUMBER
+var ADMIN_WA  = '2348000000000'; // ← CHANGE TO YOUR WHATSAPP NUMBER
+var API_URL   = 'https://script.google.com/macros/s/AKfycbzxC_1HLDB_oCjxqNlmSpgzFHCMjILQhGZscBciaEXt3DReNMUbAWLVbOSEi-ZcHgt6/exec';
 
 var ROOMS = [
   {name:'Standard Room',     price:20000, orig:25000, tier:'Tier 01'},
@@ -386,10 +387,10 @@ function step2Go() {
   B.lname = document.getElementById('lname').value.trim();
   B.email = document.getElementById('email').value.trim();
   B.phone = document.getElementById('phone').value.trim();
-/*  B.idtype = document.getElementById('idtype').value;
+  B.idtype = document.getElementById('idtype').value;
   B.idnum = document.getElementById('idnum').value.trim();
   B.nokname = document.getElementById('nokname').value.trim();
-  B.nokphone = document.getElementById('nokphone').value.trim();*/
+  B.nokphone = document.getElementById('nokphone').value.trim();
   B.requests = document.getElementById('requests').value.trim();
   var err = document.getElementById('err2');
   if (!B.fname || !B.lname || !B.email || !B.phone) {
@@ -480,16 +481,42 @@ function doCopy(text, btn) {
 }
 
 function saveBooking() {
+  var r = ROOMS[B.roomIdx];
+  var total = r.price * B.nights;
+  var booking = {
+    action:       'addBooking',
+    ref:          B.ref,
+    name:         B.fname + ' ' + B.lname,
+    email:        B.email,
+    phone:        B.phone,
+    idType:       B.idtype,
+    idNumber:     B.idnum,
+    roomType:     r.name,
+    checkinDate:  B.checkin,
+    checkoutDate: B.checkout,
+    nights:       B.nights,
+    total:        total,
+    payMethod:    'Bank Transfer',
+    payStatus:    'Pending',
+    status:       'Pending',
+    requests:     B.requests
+  };
+  // Send to Google Sheets
+  fetch(API_URL, { method:'POST', body:JSON.stringify(booking) })
+    .catch(function(e){ console.log('Sheets error:', e); });
+  // Backup to localStorage
   try {
-    var r = ROOMS[B.roomIdx];
     var bk = JSON.parse(localStorage.getItem('berakah_bookings') || '[]');
     bk.push({
-      ref:B.ref, name:B.fname+' '+B.lname, email:B.email, phone:B.phone,
-      room:r.name, tier:r.tier, checkin:B.checkin, checkout:B.checkout,
-      nights:B.nights, guests:B.guests, price:r.price, total:r.price*B.nights,
-      requests:B.requests, idtype:B.idtype, idnum:B.idnum,
-      nokname:B.nokname, nokphone:B.nokphone,
-      status:'Pending', date:new Date().toISOString()
+      ref:B.ref, bookingRef:B.ref,
+      name:B.fname+' '+B.lname, guestName:B.fname+' '+B.lname,
+      email:B.email, phone:B.phone,
+      roomType:r.name, room:r.name,
+      checkinDate:B.checkin, checkoutDate:B.checkout,
+      nights:B.nights, total:total,
+      requests:B.requests,
+      status:'Pending', payStatus:'Pending',
+      date:new Date().toISOString()
     });
     localStorage.setItem('berakah_bookings', JSON.stringify(bk));
   } catch(e) {}
