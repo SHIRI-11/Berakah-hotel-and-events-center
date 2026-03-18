@@ -329,8 +329,10 @@ tbody tr:hover td{background:rgba(201,168,76,0.03);}
 <script>
 var ADMIN_WA   = '2348000000000';
 var ADMIN_PASS = 'berakah2025';
+var API_URL    = 'https://script.google.com/macros/s/AKfycbzxC_1HLDB_oCjxqNlmSpgzFHCMjILQhGZscBciaEXt3DReNMUbAWLVbOSEi-ZcHgt6/exec';
 var bookingFilter = 'all';
 var rpPeriod = 'today';
+var LIVE_BOOKINGS = [];
 
 (function(){
   var sp = localStorage.getItem('bh_admin_pass'); if(sp) ADMIN_PASS = sp;
@@ -338,9 +340,46 @@ var rpPeriod = 'today';
 })();
 
 function getBookings(){
-  try{ return JSON.parse(localStorage.getItem('berakah_bookings')||'[]'); }catch(e){ return []; }
+  return LIVE_BOOKINGS.length ? LIVE_BOOKINGS : (JSON.parse(localStorage.getItem('berakah_bookings')||'[]'));
 }
-function saveBookings(arr){ localStorage.setItem('berakah_bookings', JSON.stringify(arr)); }
+function saveBookings(arr){
+  LIVE_BOOKINGS = arr;
+  localStorage.setItem('berakah_bookings', JSON.stringify(arr));
+}
+function loadFromSheets(callback){
+  fetch(API_URL + '?action=getBookings')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.success && data.bookings){
+        LIVE_BOOKINGS = data.bookings.map(function(b){
+          return {
+            ref:b.ref, bookingRef:b.ref,
+            name:b.name, guestName:b.name,
+            phone:b.phone, email:b.email,
+            roomType:b.roomType, room:b.roomType,
+            checkinDate:b.checkinDate, checkoutDate:b.checkoutDate,
+            nights:b.nights, total:Number(b.total)||0,
+            status:b.status||'Pending',
+            payStatus:b.payStatus||'Pending',
+            requests:b.requests,
+            date:b.date
+          };
+        });
+        localStorage.setItem('berakah_bookings', JSON.stringify(LIVE_BOOKINGS));
+      }
+      if(callback) callback();
+    })
+    .catch(function(e){
+      console.log('Sheets load error:', e);
+      if(callback) callback();
+    });
+}
+function updateSheetStatus(ref, status){
+  fetch(API_URL, {
+    method:'POST',
+    body:JSON.stringify({ action:'updateStatus', ref:ref, status:status })
+  }).catch(function(e){ console.log('Sheet update error:', e); });
+}
 
 // ── AUTH ──
 function doLogin(){
@@ -376,9 +415,20 @@ function initDashboard(){
   document.getElementById('tbDate').textContent = d;
   document.getElementById('bookingsDate').textContent = d;
   document.getElementById('s-wa').value = ADMIN_WA;
-  updateStats();
-  renderBookings('');
-  renderPending();
+  // Load from Google Sheets first
+  loadFromSheets(function(){
+    updateStats();
+    renderBookings('');
+    renderPending();
+  });
+  // Auto-refresh every 30 seconds
+  setInterval(function(){
+    loadFromSheets(function(){
+      updateStats();
+      renderBookings('');
+      renderPending();
+    });
+  }, 30000);
 }
 
 // ── NAVIGATION ──
@@ -501,6 +551,7 @@ function confirmBooking(ref){
   if(!b) return;
   b.status = 'Confirmed';
   saveBookings(bk);
+  updateSheetStatus(ref, 'Confirmed');
   updateStats(); renderBookings(''); renderPending();
   toast('✅ Booking '+ref+' confirmed!');
 }
@@ -512,6 +563,7 @@ function cancelBooking(ref){
   if(!b) return;
   b.status = 'Cancelled';
   saveBookings(bk);
+  updateSheetStatus(ref, 'Cancelled');
   updateStats(); renderBookings(''); renderPending();
   toast('Booking '+ref+' cancelled.');
 }
@@ -565,7 +617,7 @@ function waGuest(ref){
     'Check-out: '+fmtDate(b.checkOutDate||b.checkoutDate)+'\n'+
     'Total: ₦'+(b.total||0).toLocaleString()+'\n\n'+
     'Thank you for choosing Berakah Hotel! 🙏';
-  window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg));
+  window.open('https://api.whatsapp.com/send?phone='+ph+'&text='+encodeURIComponent(msg));
 }
 
 // ── REPORTS ──
