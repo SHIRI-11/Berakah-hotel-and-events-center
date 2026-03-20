@@ -198,7 +198,7 @@ body { background:white !important; color:#000 !important; }
       <div class="fg"><label>Last Name *</label><input type="text" id="lname" placeholder="Doe"></div>
       <div class="fg"><label>Email *</label><input type="email" id="email" placeholder="john@email.com"></div>
       <div class="fg"><label>Phone / WhatsApp *</label><input type="tel" id="phone" placeholder="+234 800 000 0000"></div>
-      <div class="fg"><label>ID Type</label>
+     <!-- <div class="fg"><label>ID Type</label>
         <select id="idtype">
           <option>National ID (NIN)</option>
           <option>International Passport</option>
@@ -208,7 +208,7 @@ body { background:white !important; color:#000 !important; }
       </div>
       <div class="fg"><label>ID Number</label><input type="text" id="idnum" placeholder="AB1234567"></div>
       <div class="fg"><label>Next of Kin Name</label><input type="text" id="nokname" placeholder="Jane Doe"></div>
-      <div class="fg"><label>Next of Kin Phone</label><input type="tel" id="nokphone" placeholder="+234 800 000 0000"></div>
+      <div class="fg"><label>Next of Kin Phone</label><input type="tel" id="nokphone" placeholder="+234 800 000 0000"></div>-->
       <div class="fg form-full"><label>Special Requests</label><textarea id="requests" placeholder="Early check-in, extra pillows, dietary needs..."></textarea></div>
     </div>
     <div class="sum-box">
@@ -387,10 +387,10 @@ function step2Go() {
   B.lname = document.getElementById('lname').value.trim();
   B.email = document.getElementById('email').value.trim();
   B.phone = document.getElementById('phone').value.trim();
-  B.idtype = document.getElementById('idtype').value;
+<!--  B.idtype = document.getElementById('idtype').value;
   B.idnum = document.getElementById('idnum').value.trim();
   B.nokname = document.getElementById('nokname').value.trim();
-  B.nokphone = document.getElementById('nokphone').value.trim();
+  B.nokphone = document.getElementById('nokphone').value.trim();-->
   B.requests = document.getElementById('requests').value.trim();
   var err = document.getElementById('err2');
   if (!B.fname || !B.lname || !B.email || !B.phone) {
