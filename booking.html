@@ -36,14 +36,6 @@ body { font-family:'Montserrat',sans-serif; min-height:100vh; background:#0D0D0D
 .room-card:hover { border-color:#C9A84C; background:#1e1810; }
 .room-card.picked { border-color:#C9A84C !important; background:#221a08 !important; }
 .room-card.picked::after { content:‘✓’; position:absolute; top:12px; right:14px; color:#C9A84C; font-size:1.1rem; font-weight:900; }
-.room-card.sold-out { border-color:#e74c3c!important; opacity:0.6; cursor:not-allowed; }
-.room-card.sold-out:hover { border-color:#e74c3c!important; background:#1a0808!important; }
-.avail-badge { display:inline-block; margin-top:8px; font-size:0.65rem; font-weight:600; padding:3px 10px; border-radius:2px; letter-spacing:1px; }
-.avail-badge.green { background:rgba(39,174,96,0.12); color:#27ae60; border:1px solid rgba(39,174,96,0.3); }
-.avail-badge.orange { background:rgba(243,156,18,0.12); color:#f39c12; border:1px solid rgba(243,156,18,0.3); }
-.avail-badge.red { background:rgba(231,76,60,0.12); color:#e74c3c; border:1px solid rgba(231,76,60,0.3); }
-.avail-loading { font-size:0.65rem; color:#8A7A60; margin-top:8px; }
-.avail-info-bar { background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.15); padding:10px 16px; margin-bottom:16px; font-size:0.72rem; color:#8A7A60; display:none; }
 .room-tier { font-size:0.58rem; letter-spacing:3px; text-transform:uppercase; color:#C9A84C; margin-bottom:6px; pointer-events:none; }
 .room-name { font-family:‘Cormorant Garamond’,serif; font-size:1.25rem; color:#FAF7F0; margin-bottom:10px; pointer-events:none; }
 .room-prices { display:flex; align-items:baseline; gap:8px; pointer-events:none; }
@@ -63,6 +55,9 @@ body { font-family:'Montserrat',sans-serif; min-height:100vh; background:#0D0D0D
 .form-full { grid-column:1 / -1; }
 
 .nights-bar { background:#111; border:1px solid #333; padding:12px 16px; font-size:0.82rem; color:#8A7A60; margin-top:14px; display:none; }
+.av-green { color:#27ae60; background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.2); padding:3px 8px; display:inline-block; border-radius:2px; }
+.av-orange { color:#f39c12; background:rgba(243,156,18,0.1); border:1px solid rgba(243,156,18,0.2); padding:3px 8px; display:inline-block; border-radius:2px; }
+.av-red { color:#e74c3c; background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.2); padding:3px 8px; display:inline-block; border-radius:2px; }
 .err-box { background:rgba(231,76,60,0.1); border-left:3px solid #e74c3c; color:#ff9090; padding:12px 16px; font-size:0.8rem; margin-bottom:16px; display:none; }
 
 .sum-box { background:#111; border:1px solid #333; padding:24px; margin:24px 0; }
@@ -143,55 +138,47 @@ body { background:white !important; color:#000 !important; }
 
   <div class="page active" id="page1">
     <h2 class="page-title">Select Your Room</h2>
-    <p class="page-sub">Pick your dates first to see live availability, then select a room.</p>
+    <p class="page-sub">Click on a room card to select it, then pick your dates.</p>
     <div class="err-box" id="err1">Please select a room and enter your dates.</div>
+    <div class="sel-bar" id="selBar"><span id="selName">—</span><span id="selPrice">—</span></div>
 
-
-<div class="form-grid" style="margin-bottom:8px;">
-  <div class="fg"><label>Check-in Date</label><input type="date" id="checkin" onchange="calcNights()"></div>
-  <div class="fg"><label>Check-out Date</label><input type="date" id="checkout" onchange="calcNights()"></div>
-</div>
-<div id="nightsBar" style="display:none;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);padding:10px 14px;font-size:0.82rem;color:#C9A84C;margin-bottom:16px;"></div>
-
-<div class="sel-bar" id="selBar"><span id="selName">—</span><span id="selPrice">—</span></div>
 
 <div class="room-list">
-  <div class="avail-info-bar" id="availInfoBar">📅 Showing live availability for your selected dates</div>
   <div class="room-card" id="rc0" onclick="pickRoom(0)">
     <div class="room-tier">Tier 01 · Entry Luxury</div>
     <div class="room-name">Standard Room</div>
     <div class="room-prices"><span class="room-orig">₦25,000</span><span class="room-now">₦20,000</span><span class="room-per">/ night</span></div>
-    <div id="avail0"></div>
+    <div id="av0" style="margin-top:8px;font-size:0.65rem;"></div>
   </div>
   <div class="room-card" id="rc1" onclick="pickRoom(1)">
     <div class="room-tier">Tier 02 · Enhanced Comfort</div>
     <div class="room-name">Deluxe Room</div>
     <div class="room-prices"><span class="room-orig">₦30,000</span><span class="room-now">₦25,000</span><span class="room-per">/ night</span></div>
-    <div id="avail1"></div>
+    <div id="av1" style="margin-top:8px;font-size:0.65rem;"></div>
   </div>
   <div class="room-card" id="rc2" onclick="pickRoom(2)">
     <div class="room-tier">Tier 03 · Executive Class</div>
     <div class="room-name">Executive Deluxe</div>
     <div class="room-prices"><span class="room-orig">₦35,000</span><span class="room-now">₦30,000</span><span class="room-per">/ night</span></div>
-    <div id="avail2"></div>
+    <div id="av2" style="margin-top:8px;font-size:0.65rem;"></div>
   </div>
   <div class="room-card" id="rc3" onclick="pickRoom(3)">
     <div class="room-tier">Tier 04 · Royal Collection</div>
     <div class="room-name">Royal Suite</div>
     <div class="room-prices"><span class="room-orig">₦40,000</span><span class="room-now">₦35,000</span><span class="room-per">/ night</span></div>
-    <div id="avail3"></div>
+    <div id="av3" style="margin-top:8px;font-size:0.65rem;"></div>
   </div>
   <div class="room-card" id="rc4" onclick="pickRoom(4)" style="grid-column:1/-1">
     <div class="room-tier">Tier 05 · Ultra Premium</div>
     <div class="room-name">Super Royal Suite ✨</div>
     <div class="room-prices"><span class="room-orig">₦45,000</span><span class="room-now">₦40,000</span><span class="room-per">/ night</span></div>
-    <div id="avail4"></div>
+    <div id="av4" style="margin-top:8px;font-size:0.65rem;"></div>
   </div>
 </div>
 
-<div class="form-grid" style="display:none;">
-  <div class="fg"><label>Check-in Date</label><input type="date" id="checkin2" style="display:none;"></div>
-  <div class="fg"><label>Check-out Date</label><input type="date" id="checkout2" style="display:none;"></div>
+<div class="form-grid">
+  <div class="fg"><label>Check-in Date</label><input type="date" id="checkin" onchange="calcNights()"></div>
+  <div class="fg"><label>Check-out Date</label><input type="date" id="checkout" onchange="calcNights()"></div>
   <div class="fg"><label>Number of Guests</label>
     <select id="guests">
       <option value="1">1 Guest</option>
@@ -219,32 +206,25 @@ body { background:white !important; color:#000 !important; }
       <div class="fg"><label>Last Name *</label><input type="text" id="lname" placeholder="Doe"></div>
       <div class="fg"><label>Email *</label><input type="email" id="email" placeholder="john@email.com"></div>
       <div class="fg"><label>Phone / WhatsApp *</label><input type="tel" id="phone" placeholder="+234 800 000 0000"></div>
-      <div class="fg"><label>ID Type</label>
-        <select id="idtype">
-          <option>National ID (NIN)</option>
-          <option>International Passport</option>
-          <option>Driver's License</option>
-          <option>Voter's Card</option>
-        </select>
-      </div>
-      <div class="fg"><label>ID Number</label><input type="text" id="idnum" placeholder="AB1234567"></div>
-      <div class="fg"><label>Next of Kin Name</label><input type="text" id="nokname" placeholder="Jane Doe"></div>
-      <div class="fg"><label>Next of Kin Phone</label><input type="tel" id="nokphone" placeholder="+234 800 000 0000"></div>
-      <div class="fg form-full"><label>Special Requests</label><textarea id="requests" placeholder="Early check-in, extra pillows, dietary needs..."></textarea></div>
-    </div>
-    <div class="sum-box">
-      <h4>Booking Summary</h4>
-      <div class="sum-row"><span class="sum-lbl">Room</span><span class="sum-val" id="sum-room">—</span></div>
-      <div class="sum-row"><span class="sum-lbl">Check-in</span><span class="sum-val" id="sum-ci">—</span></div>
-      <div class="sum-row"><span class="sum-lbl">Check-out</span><span class="sum-val" id="sum-co">—</span></div>
-      <div class="sum-row"><span class="sum-lbl">Nights</span><span class="sum-val" id="sum-nights">—</span></div>
-      <div class="sum-row"><span class="sum-lbl">Per Night</span><span class="sum-val" id="sum-price">—</span></div>
-      <div class="sum-row"><span class="sum-lbl">Total</span><span class="sum-big" id="sum-total">—</span></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn-outline" onclick="goPage(1)">← Back</button>
-      <button class="btn-gold" style="margin-top:0" onclick="step2Go()">Proceed to Payment →</button>
-    </div>
+
+
+  <div class="fg form-full"><label>Special Requests</label><textarea id="requests" placeholder="Early check-in, extra pillows, dietary needs..."></textarea></div>
+</div>
+<div class="sum-box">
+  <h4>Booking Summary</h4>
+  <div class="sum-row"><span class="sum-lbl">Room</span><span class="sum-val" id="sum-room">—</span></div>
+  <div class="sum-row"><span class="sum-lbl">Check-in</span><span class="sum-val" id="sum-ci">—</span></div>
+  <div class="sum-row"><span class="sum-lbl">Check-out</span><span class="sum-val" id="sum-co">—</span></div>
+  <div class="sum-row"><span class="sum-lbl">Nights</span><span class="sum-val" id="sum-nights">—</span></div>
+  <div class="sum-row"><span class="sum-lbl">Per Night</span><span class="sum-val" id="sum-price">—</span></div>
+  <div class="sum-row"><span class="sum-lbl">Total</span><span class="sum-big" id="sum-total">—</span></div>
+</div>
+<div class="btn-row">
+  <button class="btn-outline" onclick="goPage(1)">← Back</button>
+  <button class="btn-gold" style="margin-top:0" onclick="step2Go()">Proceed to Payment →</button>
+</div>
+
+
   </div>
 
   <!-- PAGE 3: PAYMENT -->
@@ -252,7 +232,7 @@ body { background:white !important; color:#000 !important; }
   <div class="page" id="page3">
     <h2 class="page-title">Bank Transfer</h2>
     <p class="page-sub">Transfer the total amount to the account below, then click "I Have Paid".</p>
-    <div class="info-bar">⚠️ Use your <strong>Booking Reference</strong> as transfer narration. Booking confirmed within 1–2 hours after payment.</div>
+    <div class="info-bar">⚠️ Use your <strong>Booking Reference</strong> as transfer narration. Booking confirmed within 1\u20132 hours after payment.</div>
     <div class="bank-box">
       <h4>Payment Details</h4>
       <div class="bank-row"><span class="bank-lbl">Bank Name</span><span class="bank-val">First Bank Nigeria</span></div>
@@ -272,7 +252,7 @@ body { background:white !important; color:#000 !important; }
           <button class="copy-btn" onclick="doCopy(document.getElementById('p-ref').textContent,this)">Copy</button>
         </span>
       </div>
-      <div class="bank-note"><strong style="color:#C9A84C;">Important:</strong> Screenshot your transfer receipt. After paying, click the button below and our team will confirm via WhatsApp within 1–2 hours.</div>
+      <div class="bank-note"><strong style="color:#C9A84C;">Important:</strong> Screenshot your transfer receipt. After paying, click the button below and our team will confirm via WhatsApp within 1\u20132 hours.</div>
     </div>
     <div class="sum-box">
       <h4>Payment Summary</h4>
@@ -322,94 +302,31 @@ body { background:white !important; color:#000 !important; }
 </div>
 
 <script>
-var ADMIN_WA  = '2348000000000'; // ← CHANGE TO YOUR WHATSAPP NUMBER
+var ADMIN_WA = '2348090769596'; // ← Berakah WhatsApp
 var API_URL   = 'https://script.google.com/macros/s/AKfycbw-WG6RC-QRcFp1T64WnoFs5YIg7YY6vSZkIZ66wg-6QFeokfZDML8-tumSaEwnEdqH/exec';
 
+// Room inventory — for availability display
+var INVENTORY = {
+  'Standard Room':     4,
+  'Deluxe Room':       4,
+  'Executive Deluxe':  9,
+  'Royal Suite':       7,
+  'Super Royal Suite': 1
+};
+
 var ROOMS = [
-  {name:'Standard Room',     price:20000, orig:25000, tier:'Tier 01', availKey:'Standard'},
-  {name:'Deluxe Room',       price:25000, orig:30000, tier:'Tier 02', availKey:'Deluxe'},
-  {name:'Executive Deluxe',  price:30000, orig:35000, tier:'Tier 03', availKey:'Exec Deluxe'},
-  {name:'Royal Suite',       price:35000, orig:40000, tier:'Tier 04', availKey:'Royal'},
-  {name:'Super Royal Suite', price:40000, orig:45000, tier:'Tier 05', availKey:'Super Royal'}
+  {name:'Standard Room',     price:20000, orig:25000, tier:'Tier 01'},
+  {name:'Deluxe Room',       price:25000, orig:30000, tier:'Tier 02'},
+  {name:'Executive Deluxe',  price:30000, orig:35000, tier:'Tier 03'},
+  {name:'Royal Suite',       price:35000, orig:40000, tier:'Tier 04'},
+  {name:'Super Royal Suite', price:40000, orig:45000, tier:'Tier 05'}
 ];
-var AVAILABILITY = {};
 
 var B = {
   roomIdx:-1, checkin:'', checkout:'', nights:0, guests:2,
   fname:'', lname:'', email:'', phone:'',
-  idtype:'', idnum:'', nokname:'', nokphone:'', requests:'', ref:''
+  requests:'', ref:''
 };
-
-function fetchAvailability(ci, co){
-  // Show loading state immediately
-  document.getElementById('availInfoBar').style.display='block';
-  document.getElementById('availInfoBar').textContent='⏳ Checking availability for your dates...';
-  for(var i=0;i<5;i++){
-    var el=document.getElementById('avail'+i);
-    if(el) el.innerHTML='<span class="avail-loading">checking...</span>';
-  }
-
-  var url = API_URL+'?action=getAvailability&checkin='+encodeURIComponent(ci)+'&checkout='+encodeURIComponent(co);
-
-  fetch(url)
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(data.success && data.availability){
-        AVAILABILITY = data.availability;
-        document.getElementById('availInfoBar').textContent='📅 Live availability for your selected dates';
-        applyAvailability(data.availability);
-      } else {
-        // API returned but no data — show all available as fallback
-        showDefaultAvailability();
-      }
-    })
-    .catch(function(e){
-      console.log('Availability fetch error:', e);
-      // Network error — show all available as fallback
-      showDefaultAvailability();
-    });
-}
-
-function showDefaultAvailability(){
-  // Fallback: show all rooms as available when Sheets unreachable
-  var defaults = {
-    'Standard':    {available:4, total:4, soldOut:false},
-    'Deluxe':      {available:4, total:4, soldOut:false},
-    'Exec Deluxe': {available:9, total:9, soldOut:false},
-    'Royal':       {available:7, total:7, soldOut:false},
-    'Super Royal': {available:1, total:1, soldOut:false}
-  };
-  document.getElementById('availInfoBar').textContent='📅 Availability shown — book now to reserve your room';
-  applyAvailability(defaults);
-}
-
-function applyAvailability(availability){
-  AVAILABILITY = availability;
-  ROOMS.forEach(function(room, idx){
-    var key  = room.availKey;
-    var av   = availability[key];
-    var el   = document.getElementById('avail'+idx);
-    var card = document.getElementById('rc'+idx);
-    if(!el) return;
-    if(!av){ el.innerHTML=''; return; }
-    if(av.soldOut){
-      el.innerHTML='<span class="avail-badge red">🔴 Sold Out</span>';
-      card.classList.add('sold-out');
-      card.onclick = function(){
-        document.getElementById('err1').textContent='⚠️ This room type is fully booked for your selected dates.';
-        document.getElementById('err1').style.display='block';
-      };
-    } else if(av.available === 1){
-      el.innerHTML='<span class="avail-badge orange">⚡ Only 1 room left!</span>';
-      card.classList.remove('sold-out');
-      card.onclick = (function(i){ return function(){ pickRoom(i); }; })(idx);
-    } else {
-      el.innerHTML='<span class="avail-badge green">✅ '+av.available+' of '+av.total+' available</span>';
-      card.classList.remove('sold-out');
-      card.onclick = (function(i){ return function(){ pickRoom(i); }; })(idx);
-    }
-  });
-}
 
 function pickRoom(idx) {
   B.roomIdx = idx;
@@ -418,7 +335,7 @@ function pickRoom(idx) {
     c.classList.remove('picked');
   }
   document.getElementById('rc' + idx).classList.add('picked');
-  document.getElementById('selName').textContent = '✅ ' + ROOMS[idx].name;
+  document.getElementById('selName').textContent = '\u2705 ' + ROOMS[idx].name;
   document.getElementById('selPrice').textContent = '₦' + ROOMS[idx].price.toLocaleString() + ' / night';
   document.getElementById('selBar').style.display = 'flex';
   document.getElementById('err1').style.display = 'none';
@@ -431,10 +348,6 @@ function calcNights() {
   B.checkin = ci;
   B.checkout = co;
   var bar = document.getElementById('nightsBar');
-  // Fetch availability when both dates are set
-  if(ci && co && Math.round((new Date(co)-new Date(ci))/86400000) > 0){
-    fetchAvailability(ci, co);
-  }
   if (ci && co) {
     var diff = Math.round((new Date(co) - new Date(ci)) / 86400000);
     if (diff > 0) {
@@ -455,16 +368,6 @@ function calcNights() {
 
 function step1Go() {
   var err = document.getElementById('err1');
-  // Check if selected room is sold out
-  if(B.roomIdx >= 0 && AVAILABILITY){
-    var key = ROOMS[B.roomIdx].availKey;
-    var av  = AVAILABILITY[key];
-    if(av && av.soldOut){
-      err.textContent='⚠️ Sorry, this room type is fully booked for your selected dates. Please choose another room.';
-      err.style.display='block';
-      return;
-    }
-  }
   if (B.roomIdx < 0) {
     err.textContent = '⚠️ Please click on a room card to select it.';
     err.style.display = 'block';
@@ -494,10 +397,6 @@ function step2Go() {
   B.lname = document.getElementById('lname').value.trim();
   B.email = document.getElementById('email').value.trim();
   B.phone = document.getElementById('phone').value.trim();
-  B.idtype = document.getElementById('idtype').value;
-  B.idnum = document.getElementById('idnum').value.trim();
-  B.nokname = document.getElementById('nokname').value.trim();
-  B.nokphone = document.getElementById('nokphone').value.trim();
   B.requests = document.getElementById('requests').value.trim();
   var err = document.getElementById('err2');
   if (!B.fname || !B.lname || !B.email || !B.phone) {
@@ -534,19 +433,30 @@ function step3Go() {
   document.getElementById('r-req').textContent = B.requests || 'None';
   document.getElementById('r-date').textContent = new Date().toDateString();
   document.getElementById('r-total').textContent = '₦' + total.toLocaleString();
-  var msg = 'BERAKAH HOTEL BOOKING\n' +
-    '----------------------------\n' +
-    'Ref: ' + B.ref + '\n' +
-    'Guest: ' + B.fname + ' ' + B.lname + '\n' +
-    'Phone: ' + B.phone + '\n' +
-    'Room: ' + r.name + '\n' +
-    'Check-in: ' + niceDate(B.checkin) + '\n' +
-    'Check-out: ' + niceDate(B.checkout) + '\n' +
-    'Nights: ' + B.nights + '\n' +
-    'Total: ' + '₦' + total.toLocaleString() + '\n' +
-    '----------------------------\n' +
+  var msg = 'BERAKAH HOTEL BOOKING\
+' +
+    '----------------------------\
+' +
+    'Ref: ' + B.ref + '\
+' +
+    'Guest: ' + B.fname + ' ' + B.lname + '\
+' +
+    'Phone: ' + B.phone + '\
+' +
+    'Room: ' + r.name + '\
+' +
+    'Check-in: ' + niceDate(B.checkin) + '\
+' +
+    'Check-out: ' + niceDate(B.checkout) + '\
+' +
+    'Nights: ' + B.nights + '\
+' +
+    'Total: ' + '₦' + total.toLocaleString() + '\
+' +
+    '----------------------------\
+' +
     'I have made the transfer. Please confirm my booking. Thank you!';
-  document.getElementById('wa-btn').href = 'https://api.whatsapp.com/send?phone=' + ADMIN_WA + '&text=' + encodeURIComponent(msg);
+  document.getElementById('wa-btn').href = 'https://wa.me/' + ADMIN_WA + '?text=' + encodeURIComponent(msg);
   goPage(4);
 }
 
@@ -591,37 +501,39 @@ function saveBooking() {
   var r = ROOMS[B.roomIdx];
   var total = r.price * B.nights;
   var booking = {
-    action:       'addBooking',
-    ref:          B.ref,
-    name:         B.fname + ' ' + B.lname,
-    email:        B.email,
-    phone:        B.phone,
-    roomType:     r.name,
-    checkinDate:  B.checkin,
+    action: 'addBooking',
+    ref: B.ref,
+    name: B.fname + ' ' + B.lname,
+    email: B.email,
+    phone: B.phone,
+    roomType: r.name,
+    checkinDate: B.checkin,
     checkoutDate: B.checkout,
-    nights:       B.nights,
-    total:        total,
-    payMethod:    'Bank Transfer',
-    payStatus:    'Pending',
-    status:       'Pending',
-    requests:     B.requests
+    nights: B.nights,
+    total: total,
+    payMethod: 'Bank Transfer',
+    payStatus: 'Pending',
+    status: 'Pending',
+    requests: B.requests
   };
   // Send to Google Sheets
-  fetch(API_URL, { method:'POST', body:JSON.stringify(booking) })
-    .catch(function(e){ console.log('Sheets error:', e); });
-  // Backup to localStorage
+  fetch(API_URL, { method: 'POST', body: JSON.stringify(booking) })
+    .catch(function(e) { console.log('Sheets error:', e); });
+  // Backup localStorage
   try {
     var bk = JSON.parse(localStorage.getItem('berakah_bookings') || '[]');
     bk.push({
-      ref:B.ref, bookingRef:B.ref,
-      name:B.fname+' '+B.lname, guestName:B.fname+' '+B.lname,
-      email:B.email, phone:B.phone,
-      roomType:r.name, room:r.name,
-      checkinDate:B.checkin, checkoutDate:B.checkout,
-      nights:B.nights, total:total,
-      requests:B.requests,
-      status:'Pending', payStatus:'Pending',
-      date:new Date().toISOString()
+      ref: B.ref, bookingRef: B.ref,
+      name: B.fname+' '+B.lname, guestName: B.fname+' '+B.lname,
+      email: B.email, phone: B.phone,
+      roomType: r.name, room: r.name, tier: r.tier,
+      checkinDate: B.checkin, checkoutDate: B.checkout,
+      checkin: B.checkin, checkout: B.checkout,
+      nights: B.nights, guests: B.guests,
+      price: r.price, total: total,
+      requests: B.requests,
+      status: 'Pending', payStatus: 'Pending',
+      date: new Date().toISOString()
     });
     localStorage.setItem('berakah_bookings', JSON.stringify(bk));
   } catch(e) {}
